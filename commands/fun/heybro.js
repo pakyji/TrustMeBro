@@ -8,7 +8,7 @@ const openrouter = new OpenAI({
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('openrouterbro')
+        .setName('heybro')
         .setDescription('Ask anything to OpenRouter AI! 100% fake & funny.')
         .addStringOption(option =>
             option.setName('prompt')
@@ -27,7 +27,7 @@ module.exports = {
             }
 
             const completion = await openrouter.chat.completions.create({
-                model: "cognitivecomputations/dolphin-mixtral-8x7b", // Aap yahan koi bhi OpenRouter ka model daal sakte hain (jaise google/gemini-flash-1.5)
+                model: "google/gemma-2-9b-it:free",
                 messages: [
                     { role: "system", content: "You are a sarcastic, funny, and meme-obsessed AI bot named TrustMeBro. STRICT RULE: Keep your response strictly under 2 sentences. Punchy and short. Always claim your info is 100% real." },
                     { role: "user", content: userPrompt }
