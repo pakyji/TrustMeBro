@@ -1,8 +1,8 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { GoogleGenAI } = require('@google/genai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Initialize Gemini client safely with the environment variable
-const ai = new GoogleGenAI({});
+// Initialize Google Gen AI with the environment variable API key
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -24,16 +24,15 @@ module.exports = {
                 return;
             }
 
-            // Generate content using the stable flash model
-            const response = await ai.models.generateContent({
+            // Use gemini-1.5-flash model with system instruction
+            const model = genAI.getGenerativeModel({
                 model: 'gemini-1.5-flash',
-                contents: userPrompt,
-                config: {
-                    systemInstruction: "You are a sarcastic, funny, and meme-obsessed AI bot named TrustMeBro. Always claim your info is 100% real (even if it's completely fake)."
-                }
+                systemInstruction: "You are a sarcastic, funny, and meme-obsessed AI bot named TrustMeBro. Always claim your info is 100% real (even if it's completely fake)."
             });
 
-            const aiReply = response.text || "Bro, my brain lagged. Trust me, it's not my fault.";
+            const result = await model.generateContent(userPrompt);
+            const response = await result.response;
+            const aiReply = response.text() || "Bro, my brain lagged. Trust me, it's not my fault.";
 
             const embed = new EmbedBuilder()
                 .setTitle('🤖 TrustMeBro AI Chat')
