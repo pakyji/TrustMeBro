@@ -239,7 +239,10 @@ module.exports = {
     async handleMessage(message, client) {
         if (message.author.bot || !message.content) return;
 
-        if (message.mentions.has(client.user) && !message.mentions.everyone) {
+        // Directly check if client ID is in message mentions to bypass caching mismatches
+        const isMentioned = message.mentions.users.has(client.user.id);
+
+        if (isMentioned && !message.mentions.everyone) {
             const randomJoke = funnyPingResponses[Math.floor(Math.random() * funnyPingResponses.length)];
 
             const embed = new EmbedBuilder()
