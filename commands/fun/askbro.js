@@ -1,9 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { GoogleGenAI } = require('@google/genai');
 
-// Initialize Gemini API using environment variable
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('askbro')
@@ -14,20 +11,24 @@ module.exports = {
                 .setRequired(true)
         ),
     async execute(interaction) {
-        await interaction.deferReply(); // AI response mein time lag sakta hai isliye defer kiya
+        await interaction.deferReply();
 
         const userPrompt = interaction.options.getString('prompt');
 
         try {
-            // Call Gemini API (using gemini-2.5-flash as default fast model)
+            if (!process.env.GEMINI_API_KEY) {
+                await interaction.editReply("Bro, GEMINI_API_KEY environment variable missing hai!");
+                return;
+            }
+
+            const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: [
-                    {
-                        role: 'user',
-                        parts: [{ text: `You are a sarcastic, funny, and meme-obsessed AI bot named TrustMeBro. Always claim your info is 100% real (even if it's completely fake). Answer this user prompt: ${userPrompt}` }]
-                    }
-                ]
+                model: 'gemini-flash-latest',
+                contents: userPrompt,
+                config: {
+                    systemInstruction: "You are a sarcastic, funny, and meme-obsessed AI bot named TrustMeBro. Always claim your info is 100% real (even if it's completely fake)."
+                }
             });
 
             const aiReply = response.text || "Bro, my brain lagged. Trust me, it's not my fault.";
@@ -44,8 +45,8 @@ module.exports = {
 
             await interaction.editReply({ embeds: [embed] });
         } catch (error) {
-            console.error(error);
-            await interaction.editReply('Bro, the AI servers are crying right now. Trust me, try again later.');
+            console.error("Gemini Error:", error);
+            await interaction.editReply(`Bro, AI crash ho gaya: \`${error.message}\``);
         }
     },
 };
