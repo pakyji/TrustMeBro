@@ -27,7 +27,7 @@ module.exports = {
             }
 
             const completion = await openrouter.chat.completions.create({
-                model: "google/gemma-2-9b-it:free",
+                model: "openrouter/free",
                 messages: [
                     { role: "system", content: "You are a sarcastic, funny, and meme-obsessed AI bot named TrustMeBro. STRICT RULE: Keep your response strictly under 2 sentences. Punchy and short. Always claim your info is 100% real." },
                     { role: "user", content: userPrompt }
