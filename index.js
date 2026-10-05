@@ -66,4 +66,21 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
+// Universal Event Hook for modular features (like Anti-Link handleMessage)
+client.on('messageCreate', async (message) => {
+    if (!message.guild || message.author.bot) return;
+
+    if (client.commands) {
+        for (const [name, command] of client.commands) {
+            if (command.handleMessage && typeof command.handleMessage === 'function') {
+                try {
+                    await command.handleMessage(message);
+                } catch (error) {
+                    console.error(`Error in handleMessage for command ${name}:`, error);
+                }
+            }
+        }
+    }
+});
+
 client.login(process.env.TOKEN);
