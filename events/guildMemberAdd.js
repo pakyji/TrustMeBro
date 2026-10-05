@@ -1,4 +1,4 @@
-const { Events } = require('discord.js');
+const { Events, EmbedBuilder } = require('discord.js');
 
 module.exports = {
     name: Events.GuildMemberAdd,
@@ -25,9 +25,14 @@ module.exports = {
 
             const randomBanner = welcomeBanners[Math.floor(Math.random() * welcomeBanners.length)];
 
-            const dmMessage = `🤖 **Yo ${member.user.username}, welcome to the server! (Trust me bro, you made the right choice).**\n\nListen up, bro. Now that you've successfully stepped foot in here, your IQ has officially dropped by 50 points—don't worry, you'll fit right in with the rest of us.\n\n💡 **Quick Survival Guide:**\n* Read the rules? Nah, just vibe and hope for the best.\n* If anyone asks, you're a certified sigma grindset expert (even if you sleep till 4 PM).\n\n*Welcome to the cult, bro. 100% real info (I swear).* 😎🔥\n\n${randomBanner}`;
+            const dmText = `🤖 **Yo ${member.user.username}, welcome to the server! (Trust me bro, you made the right choice).**\n\nListen up, bro. Now that you've successfully stepped foot in here, your IQ has officially dropped by 50 points—don't worry, you'll fit right in with the rest of us.\n\n💡 **Quick Survival Guide:**\n* Read the rules? Nah, just vibe and hope for the best.\n* If anyone asks, you're a certified sigma grindset expert (even if you sleep till 4 PM).\n\n*Welcome to the cult, bro. 100% real info (I swear).* 😎🔥`;
 
-            await member.send({ content: dmMessage });
+            // Using an embed strictly for rendering the banner image natively inside the DM
+            const embed = new EmbedBuilder()
+                .setColor('#2b2d31')
+                .setImage(randomBanner);
+
+            await member.send({ content: dmText, embeds: [embed] });
         } catch (error) {
             console.error(`Could not send welcome DM to ${member.user.tag}:`, error);
         }
