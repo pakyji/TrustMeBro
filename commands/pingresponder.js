@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 
 const funnyPingResponses = [
     "Bro, why are you pinging me? I am alive and keeping an eye on things!",
@@ -244,22 +244,15 @@ module.exports = {
         return interaction.reply({ content: 'Bro, command use mat kar, bas mujhe ping karke dekh!', ephemeral: true });
     },
 
-    // Yeh function index.js ke messageCreate loop se directly execute hoga
     async handleMessage(message) {
         if (message.author.bot || !message.content) return;
 
-        // Check if the bot is mentioned
         if (message.mentions.users.has(message.client.user.id) && !message.mentions.everyone) {
             const randomIndex = Math.floor(Math.random() * funnyPingResponses.length);
             const randomJoke = funnyPingResponses[randomIndex];
 
-            const embed = new EmbedBuilder()
-                .setTitle('🤖 TrustMeBro AI System')
-                .setDescription(`**${randomJoke}**\n\n*Use **/help** to see actual commands instead of pinging me!*`)
-                .setColor(0x3498DB)
-                .setTimestamp();
-
-            return message.reply({ embeds: [embed] });
+            // Invia solo il testo semplice, senza alcun embed o titolo!
+            return message.reply({ content: randomJoke });
         }
     }
 };
