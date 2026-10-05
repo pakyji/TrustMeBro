@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 const funnyPingResponses = [
     "Bro, why are you pinging me? I am alive and keeping an eye on things!",
@@ -236,20 +236,13 @@ const funnyPingResponses = [
 ];
 
 module.exports = {
-    // Dummy command data so the existing loader picks it up without touching index.js
-    data: new SlashCommandBuilder()
-        .setName('pingresponder_internal')
-        .setDescription('Internal event responder handler'),
-
-    async execute(interaction) {
-        return interaction.reply({ content: 'Bro, this is an internal event module, not a direct command!', ephemeral: true });
-    },
-
-    async handleMessage(message) {
+    async handleMessage(message, client) {
         if (message.author.bot || !message.content) return;
 
-        if (message.mentions.users.has(message.client.user.id) && !message.mentions.everyone) {
-            const randomJoke = funnyPingResponses[Math.floor(Math.random() * funnyPingResponses.length)];
+        if (message.mentions.users.has(client.user.id) && !message.mentions.everyone) {
+            // Force a true random index calculation across the entire array length
+            const randomIndex = Math.floor(Math.random() * funnyPingResponses.length);
+            const randomJoke = funnyPingResponses[randomIndex];
 
             const embed = new EmbedBuilder()
                 .setTitle('🤖 TrustMeBro AI System')
