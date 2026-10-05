@@ -9,10 +9,10 @@ const openrouter = new OpenAI({
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('heybro')
-        .setDescription('Ask anything to OpenRouter AI! 100% fake & funny.')
+        .setDescription('Ask anything to the Bro! 100% fake & funny.')
         .addStringOption(option =>
             option.setName('prompt')
-                .setDescription('What do you want to ask the OpenRouter bro?')
+                .setDescription('What do you want to ask the bro?')
                 .setRequired(true)
         ),
     async execute(interaction) {
@@ -38,10 +38,10 @@ module.exports = {
             const replyText = completion.choices[0].message.content || "Bro, my brain lagged. Trust me, it's not my fault.";
 
             const embed = new EmbedBuilder()
-                .setTitle('🤖 TrustMeBro OpenRouter Chat')
+                .setTitle('🤖 TrustMeBro AI')
                 .addFields(
                     { name: '❓ Question', value: userPrompt, inline: false },
-                    { name: '💡 OpenRouter Bro\'s Answer', value: replyText, inline: false }
+                    { name: '💡 Bro\'s Answer', value: replyText, inline: false }
                 )
                 .setColor(0x651FFF)
                 .setFooter({ text: '100% real info (I swear).' })
@@ -50,7 +50,7 @@ module.exports = {
             await interaction.editReply({ embeds: [embed] });
         } catch (error) {
             console.error("OpenRouter Error:", error);
-            await interaction.editReply({ content: `Bro, OpenRouter servers are taking a nap right now. Try again later!` });
+            await interaction.editReply({ content: `Bro, servers are taking a nap right now. Try again later!` });
         }
     },
 };
