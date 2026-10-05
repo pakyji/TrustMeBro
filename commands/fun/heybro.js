@@ -1,0 +1,56 @@
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const OpenAI = require('openai');
+
+const openrouter = new OpenAI({
+    apiKey: process.env.OPENROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1",
+});
+
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName('openrouterbro')
+        .setDescription('Ask anything to OpenRouter AI! 100% fake & funny.')
+        .addStringOption(option =>
+            option.setName('prompt')
+                .setDescription('What do you want to ask the OpenRouter bro?')
+                .setRequired(true)
+        ),
+    async execute(interaction) {
+        await interaction.deferReply();
+
+        const userPrompt = interaction.options.getString('prompt');
+
+        try {
+            if (!process.env.OPENROUTER_API_KEY) {
+                await interaction.editReply("Bro, OPENROUTER_API_KEY environment variable is missing!");
+                return;
+            }
+
+            const completion = await openrouter.chat.completions.create({
+                model: "cognitivecomputations/dolphin-mixtral-8x7b", // Aap yahan koi bhi OpenRouter ka model daal sakte hain (jaise google/gemini-flash-1.5)
+                messages: [
+                    { role: "system", content: "You are a sarcastic, funny, and meme-obsessed AI bot named TrustMeBro. STRICT RULE: Keep your response strictly under 2 sentences. Punchy and short. Always claim your info is 100% real." },
+                    { role: "user", content: userPrompt }
+                ],
+                max_tokens: 100,
+            });
+
+            const replyText = completion.choices[0].message.content || "Bro, my brain lagged. Trust me, it's not my fault.";
+
+            const embed = new EmbedBuilder()
+                .setTitle('🤖 TrustMeBro OpenRouter Chat')
+                .addFields(
+                    { name: '❓ Question', value: userPrompt, inline: false },
+                    { name: '💡 OpenRouter Bro\'s Answer', value: replyText, inline: false }
+                )
+                .setColor(0x651FFF)
+                .setFooter({ text: '100% real info (I swear).' })
+                .setTimestamp();
+
+            await interaction.editReply({ embeds: [embed] });
+        } catch (error) {
+            console.error("OpenRouter Error:", error);
+            await interaction.editReply({ content: `Bro, OpenRouter servers are taking a nap right now. Try again later!` });
+        }
+    },
+};
