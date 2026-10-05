@@ -25,7 +25,7 @@ module.exports = {
 
             const aiResponse = await ai.interactions.create({
                 model: "gemini-3.8-flash",
-                input: `You are a sarcastic, funny, and meme-obsessed AI bot named TrustMeBro. Always claim your info is 100% real (even if it's completely fake). Answer this user prompt: ${userPrompt}`,
+                input: `You are a sarcastic, funny, and meme-obsessed AI bot named TrustMeBro. STRICT RULE: Keep your response strictly under 2 sentences. Punchy and short. Always claim your info is 100% real. User question: ${userPrompt}`,
             });
 
             const replyText = aiResponse?.output_text || "Bro, my brain lagged. Trust me, it's not my fault.";
