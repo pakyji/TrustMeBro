@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -22,16 +22,9 @@ module.exports = {
 
         const randomAura = fakeLevels[Math.floor(Math.random() * fakeLevels.length)];
 
-        const embed = new EmbedBuilder()
-            .setTitle('🤖 TrustMeBro AI Scanner')
-            .setDescription(`Scanning aura for **${target.username}**... 100% real info (I swear).`)
-            .addFields(
-                { name: '🧠 AI Brain Analysis', value: randomAura, inline: false },
-                { name: '💡 Trust Score', value: '0.1% (Totally legit)', inline: false }
-            )
-            .setColor(0xFF0055)
-            .setTimestamp();
+        // Clean text-only response keeping the bro vibe alive
+        const responseMessage = `🤖 **TrustMeBro AI Scanner**\nScanning aura for **${target.username}**... 100% real info (I swear).\n\n🧠 **AI Brain Analysis:** ${randomAura}\n💡 **Trust Score:** 0.1% (Totally legit)`;
 
-        await interaction.reply({ embeds: [embed] });
+        await interaction.reply({ content: responseMessage });
     },
 };
