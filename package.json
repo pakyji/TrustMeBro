@@ -7,7 +7,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
+    "@google/genai": "*",
     "discord.js": "^14.14.0"
   },
   "engines": {
