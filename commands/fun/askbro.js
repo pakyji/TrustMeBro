@@ -1,7 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { GoogleGenAI } = require('@google/genai');
 
-// Initialize GoogleGenAI. It automatically reads GEMINI_API_KEY from environment variables.
 const ai = new GoogleGenAI({});
 
 module.exports = {
@@ -24,13 +23,12 @@ module.exports = {
                 return;
             }
 
-            // Using the correct interaction create method and model format from the new SDK
             const aiResponse = await ai.interactions.create({
                 model: "gemini-3.8-flash",
                 input: `You are a sarcastic, funny, and meme-obsessed AI bot named TrustMeBro. Always claim your info is 100% real (even if it's completely fake). Answer this user prompt: ${userPrompt}`,
             });
 
-            const replyText = aiResponse.output_text || "Bro, my brain lagged. Trust me, it's not my fault.";
+            const replyText = aiResponse?.output_text || "Bro, my brain lagged. Trust me, it's not my fault.";
 
             const embed = new EmbedBuilder()
                 .setTitle('🤖 TrustMeBro AI Chat')
@@ -44,8 +42,8 @@ module.exports = {
 
             await interaction.editReply({ embeds: [embed] });
         } catch (error) {
-            console.error("Gemini SDK Error:", error);
-            await interaction.editReply(`Bro, AI crashed: \`${error.message}\``);
+            console.error("Gemini SDK Execution Error:", error);
+            await interaction.editReply({ content: `Bro, AI servers are taking a nap right now. Try again later!` });
         }
     },
 };
