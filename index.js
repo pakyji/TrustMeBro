@@ -3,7 +3,13 @@ const fs = require('fs');
 const path = require('path');
 
 const client = new Client({ 
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] 
+    intents: [
+        GatewayIntentBits.Guilds, 
+        GatewayIntentBits.GuildMessages, 
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildMembers, // New members detect karne ke liye zaroori hai!
+        GatewayIntentBits.DirectMessages // DM bhejne ke liye zaroori hai!
+    ] 
 });
 
 client.commands = new Collection();
@@ -33,6 +39,21 @@ function loadCommands(dir) {
 const foldersPath = path.join(__dirname, 'commands');
 if (fs.existsSync(foldersPath)) {
     loadCommands(foldersPath);
+}
+
+// Function to load events automatically from the /events folder
+const eventsPath = path.join(__dirname, 'events');
+if (fs.existsSync(eventsPath)) {
+    const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+    for (const file of eventFiles) {
+        const filePath = path.join(eventsPath, file);
+        const event = require(filePath);
+        if (event.once) {
+            client.once(event.name, (...args) => event.execute(...args, client));
+        } else {
+            client.on(event.name, (...args) => event.execute(...args, client));
+        }
+    }
 }
 
 client.once('ready', async () => {
