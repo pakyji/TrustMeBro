@@ -1,6 +1,9 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { GoogleGenAI } = require('@google/genai');
 
+// Initialize Gemini client safely with the environment variable
+const ai = new GoogleGenAI({});
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('askbro')
@@ -17,14 +20,13 @@ module.exports = {
 
         try {
             if (!process.env.GEMINI_API_KEY) {
-                await interaction.editReply("Bro, GEMINI_API_KEY environment variable missing hai!");
+                await interaction.editReply("Bro, GEMINI_API_KEY environment variable is missing!");
                 return;
             }
 
-            const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
+            // Generate content using the stable flash model
             const response = await ai.models.generateContent({
-                model: 'gemini-flash-latest',
+                model: 'gemini-1.5-flash',
                 contents: userPrompt,
                 config: {
                     systemInstruction: "You are a sarcastic, funny, and meme-obsessed AI bot named TrustMeBro. Always claim your info is 100% real (even if it's completely fake)."
@@ -46,7 +48,7 @@ module.exports = {
             await interaction.editReply({ embeds: [embed] });
         } catch (error) {
             console.error("Gemini Error:", error);
-            await interaction.editReply(`Bro, AI crash ho gaya: \`${error.message}\``);
+            await interaction.editReply(`Bro, AI crashed: \`${error.message}\``);
         }
     },
 };
