@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const OpenAI = require('openai');
 
 // Initialize OpenAI client configured for xAI (Grok)
@@ -38,17 +38,10 @@ module.exports = {
 
             const replyText = completion.choices[0].message.content || "Bro, my brain lagged. Trust me, it's not my fault.";
 
-            const embed = new EmbedBuilder()
-                .setTitle('🤖 TrustMeBro Grok Chat')
-                .addFields(
-                    { name: '❓ Question', value: userPrompt, inline: false },
-                    { name: '💡 Grok Bro\'s Answer', value: replyText, inline: false }
-                )
-                .setColor(0x000000)
-                .setFooter({ text: '100% real info (I swear).' })
-                .setTimestamp();
+            // Clean, text-only response keeping the bro style intact
+            const responseMessage = `❓ **Question:** ${userPrompt}\n\n💡 **Grok Bro's Answer:** ${replyText}\n\n*Trust me bro, this info is 100% real (I swear).*`;
 
-            await interaction.editReply({ embeds: [embed] });
+            await interaction.editReply({ content: responseMessage });
         } catch (error) {
             console.error("Grok Error:", error);
             await interaction.editReply({ content: `Bro, Grok servers are taking a nap right now. Try again later!` });
