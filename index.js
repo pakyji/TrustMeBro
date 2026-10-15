@@ -1,79 +1,100 @@
-const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, REST, Routes, Events } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const { announceNewBuild } = require('./lib/announce');
 
-const client = new Client({ 
+// Keep the process alive on unexpected errors. They are logged, not hidden.
+process.on('unhandledRejection', (reason) => console.error('Unhandled promise rejection:', reason));
+process.on('uncaughtException', (error) => console.error('Uncaught exception:', error));
+
+const TOKEN = process.env.TOKEN;
+if (!TOKEN || !TOKEN.trim()) {
+    console.error('TOKEN is not set. Add it to your environment or .env file, then start again.');
+    process.exit(1);
+}
+
+const client = new Client({
     intents: [
-        GatewayIntentBits.Guilds, 
-        GatewayIntentBits.GuildMessages, 
-        GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildMembers, // New members detect karne ke liye zaroori hai!
-        GatewayIntentBits.DirectMessages // DM bhejne ke liye zaroori hai!
-    ] 
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent, // Privileged: enable in the Developer Portal
+        GatewayIntentBits.GuildMembers,   // Privileged: welcome DMs and member moderation
+        GatewayIntentBits.GuildVoiceStates, // Needed for /play and the other music commands
+        GatewayIntentBits.DirectMessages,
+    ],
 });
 
 client.commands = new Collection();
 const commandsArray = [];
 
-// Function to read commands recursively from folders and subfolders
+// Loads every command file in a folder tree. One broken file is logged and skipped.
 function loadCommands(dir) {
-    const files = fs.readdirSync(dir);
-
-    for (const file of files) {
+    for (const file of fs.readdirSync(dir)) {
         const filePath = path.join(dir, file);
-        const stat = fs.statSync(filePath);
 
-        if (stat.isDirectory()) {
+        if (fs.statSync(filePath).isDirectory()) {
             loadCommands(filePath);
         } else if (file.endsWith('.js')) {
-            const command = require(filePath);
-            if ('data' in command && 'execute' in command) {
+            try {
+                const command = require(filePath);
+                if (!('data' in command) || typeof command.execute !== 'function') {
+                    console.warn(`Skipped ${filePath}: it must export data and execute.`);
+                    continue;
+                }
+                if (client.commands.has(command.data.name)) {
+                    console.warn(`Duplicate command name "${command.data.name}" in ${filePath}. The first one is kept.`);
+                    continue;
+                }
                 client.commands.set(command.data.name, command);
                 commandsArray.push(command.data.toJSON());
+            } catch (error) {
+                console.error(`Failed to load ${filePath}:`, error);
             }
         }
     }
 }
 
-// Load all commands automatically
-const foldersPath = path.join(__dirname, 'commands');
-if (fs.existsSync(foldersPath)) {
-    loadCommands(foldersPath);
-}
+const commandsPath = path.join(__dirname, 'commands');
+if (fs.existsSync(commandsPath)) loadCommands(commandsPath);
 
-// Function to load events automatically from the /events folder
+// Events are loaded from /events. A bad file is logged and skipped.
 const eventsPath = path.join(__dirname, 'events');
 if (fs.existsSync(eventsPath)) {
-    const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
-    for (const file of eventFiles) {
-        const filePath = path.join(eventsPath, file);
-        const event = require(filePath);
-        if (event.once) {
-            client.once(event.name, (...args) => event.execute(...args, client));
-        } else {
-            client.on(event.name, (...args) => event.execute(...args, client));
+    for (const file of fs.readdirSync(eventsPath).filter(f => f.endsWith('.js'))) {
+        try {
+            const event = require(path.join(eventsPath, file));
+            const handler = (...args) => event.execute(...args, client);
+            if (event.once) client.once(event.name, handler);
+            else client.on(event.name, handler);
+        } catch (error) {
+            console.error(`Failed to load event ${file}:`, error);
         }
     }
 }
 
-client.once('ready', async () => {
-    console.log(`Logged in as ${client.user.tag}! Trust me, bro.`);
+client.once(Events.ClientReady, async (readyClient) => {
+    console.log(`Logged in as ${readyClient.user.tag}! Trust me, bro.`);
 
-    const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
+    const rest = new REST({ version: '10' }).setToken(TOKEN);
     try {
-        console.log('Started refreshing application (/) commands.');
-        await rest.put(
-            Routes.applicationCommands(client.user.id),
-            { body: commandsArray },
-        );
+        console.log(`Registering ${commandsArray.length} application (/) commands.`);
+        await rest.put(Routes.applicationCommands(readyClient.user.id), { body: commandsArray });
         console.log('Successfully reloaded application (/) commands.');
     } catch (error) {
-        console.error(error);
+        console.error('Could not register slash commands:', error);
+    }
+
+    // Post the "live" message (with @everyone) in guilds that set it up, once per new build.
+    try {
+        await announceNewBuild(readyClient);
+    } catch (error) {
+        console.error('Update announcement failed:', error);
     }
 });
 
-// Handle command execution
-client.on('interactionCreate', async interaction => {
+client.on(Events.Error, (error) => console.error('Discord client error:', error));
+
+client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
 
     const command = client.commands.get(interaction.commandName);
@@ -82,26 +103,36 @@ client.on('interactionCreate', async interaction => {
     try {
         await command.execute(interaction, client);
     } catch (error) {
-        console.error(error);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-    }
-});
-
-// Universal Event Hook for modular features (like Anti-Link handleMessage)
-client.on('messageCreate', async (message) => {
-    if (!message.guild || message.author.bot) return;
-
-    if (client.commands) {
-        for (const [name, command] of client.commands) {
-            if (command.handleMessage && typeof command.handleMessage === 'function') {
-                try {
-                    await command.handleMessage(message);
-                } catch (error) {
-                    console.error(`Error in handleMessage for command ${name}:`, error);
-                }
+        console.error(`Error in /${interaction.commandName}:`, error);
+        const text = 'Bro, something broke while running this command. Try again later!';
+        try {
+            // Use editReply / followUp if the interaction was already acknowledged.
+            if (interaction.deferred || interaction.replied) {
+                await interaction.editReply({ content: text }).catch(() => interaction.followUp({ content: text, ephemeral: true }));
+            } else {
+                await interaction.reply({ content: text, ephemeral: true });
             }
+        } catch (replyError) {
+            console.error('Could not send the error reply:', replyError.message);
         }
     }
 });
 
-client.login(process.env.TOKEN);
+// Modular message hooks (for example anti-link). Each one runs in its own try block.
+client.on(Events.MessageCreate, async (message) => {
+    if (!message.guild || message.author.bot) return;
+
+    for (const [name, command] of client.commands) {
+        if (typeof command.handleMessage !== 'function') continue;
+        try {
+            await command.handleMessage(message);
+        } catch (error) {
+            console.error(`Error in handleMessage for /${name}:`, error);
+        }
+    }
+});
+
+client.login(TOKEN).catch((error) => {
+    console.error('Login failed. Check that TOKEN is correct and the privileged intents are enabled:', error.message);
+    process.exit(1);
+});

@@ -1,11 +1,11 @@
 const { SlashCommandBuilder } = require('discord.js');
-const OpenAI = require('openai');
+const { openAICompatible, askChat, buildAnswer } = require('../../lib/ai');
 
-// Initialize OpenAI client configured for xAI (Grok)
-const grok = new OpenAI({
-    apiKey: process.env.GROK_API_KEY,
-    baseURL: "https://api.x.ai/v1",
-});
+// xAI (Grok). The model is configurable because xAI retires model names over time.
+// grok-beta and grok-3-mini are no longer in the catalogue.
+const BASE_URL = 'https://api.x.ai/v1';
+const MODEL = process.env.GROK_MODEL || 'grok-4.3';
+const SYSTEM = 'You are a sarcastic, funny, and meme-obsessed AI bot named TrustMeBro powered by Grok. STRICT RULE: Keep your response strictly under 2 sentences. Punchy and short. Always claim your info is 100% real.';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -15,36 +15,35 @@ module.exports = {
             option.setName('prompt')
                 .setDescription('What do you want to ask the Grok bro?')
                 .setRequired(true)
+                .setMaxLength(300)
         ),
     async execute(interaction) {
         await interaction.deferReply();
 
         const userPrompt = interaction.options.getString('prompt');
+        const client = openAICompatible(process.env.GROK_API_KEY, BASE_URL);
+        if (!client) {
+            await interaction.editReply('Bro, GROK_API_KEY is missing! Ask the bot owner to set it.');
+            return;
+        }
 
         try {
-            if (!process.env.GROK_API_KEY) {
-                await interaction.editReply("Bro, GROK_API_KEY environment variable is missing!");
-                return;
-            }
-
-            const completion = await grok.chat.completions.create({
-                model: "grok-beta",
-                messages: [
-                    { role: "system", content: "You are a sarcastic, funny, and meme-obsessed AI bot named TrustMeBro powered by Grok. STRICT RULE: Keep your response strictly under 2 sentences. Punchy and short. Always claim your info is 100% real." },
-                    { role: "user", content: userPrompt }
-                ],
-                max_tokens: 100,
+            const reply = await askChat(client, MODEL, SYSTEM, userPrompt);
+            await interaction.editReply({
+                content: buildAnswer({
+                    question: userPrompt,
+                    label: "Grok Bro's Answer",
+                    reply,
+                    fallback: "Bro, my brain lagged. Trust me, it's not my fault.",
+                }),
+                allowedMentions: { parse: [] },
             });
-
-            const replyText = completion.choices[0].message.content || "Bro, my brain lagged. Trust me, it's not my fault.";
-
-            // Clean, text-only response keeping the bro style intact
-            const responseMessage = `❓ **Question:** ${userPrompt}\n\n💡 **Grok Bro's Answer:** ${replyText}\n\n*Trust me bro, this info is 100% real (I swear).*`;
-
-            await interaction.editReply({ content: responseMessage });
         } catch (error) {
-            console.error("Grok Error:", error);
-            await interaction.editReply({ content: `Bro, Grok servers are taking a nap right now. Try again later!` });
+            console.error('grokbro error:', error);
+            await interaction.editReply({
+                content: 'Bro, Grok servers are taking a nap right now. Try again later!',
+                allowedMentions: { parse: [] },
+            });
         }
     },
 };

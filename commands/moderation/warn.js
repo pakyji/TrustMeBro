@@ -1,14 +1,33 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const store = require('../../lib/store');
+const { moderationBlocker } = require('../../lib/moderation');
 
-// In-memory storage for warnings
-// Structure: { guildId: { userId: [ { reason: string, moderator: string, date: string } ] } }
-const warningsStorage = new Map();
+// Warnings are saved to data/store.json so they survive a restart.
+// Shape: { [guildId]: { [userId]: [ { reason, moderator, date } ] } }
+const STORE_KEY = 'warnings';
+
+function allWarnings() {
+    return store.get(STORE_KEY, {});
+}
+
+function userWarnings(guildId, userId) {
+    const all = allWarnings();
+    return (all[guildId] && all[guildId][userId]) || [];
+}
+
+function setUserWarnings(guildId, userId, list) {
+    const all = allWarnings();
+    all[guildId] = all[guildId] || {};
+    all[guildId][userId] = list;
+    store.set(STORE_KEY, all);
+}
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('warn')
         .setDescription('Advanced warning management system.')
         .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
+        .setDMPermission(false)
         .addSubcommand(subcommand =>
             subcommand
                 .setName('add')
@@ -22,6 +41,7 @@ module.exports = {
                     option.setName('reason')
                         .setDescription('Reason for the warning')
                         .setRequired(false)
+                        .setMaxLength(400)
                 )
         )
         .addSubcommand(subcommand =>
@@ -45,91 +65,82 @@ module.exports = {
                 )
         ),
 
-    async execute(interaction, client) {
+    async execute(interaction) {
+        if (!interaction.guild) {
+            return interaction.reply({ content: 'Bro, this command only works in a server.', ephemeral: true });
+        }
+
         const guildId = interaction.guild.id;
         const subcommand = interaction.options.getSubcommand();
         const target = interaction.options.getUser('target');
+        const list = userWarnings(guildId, target.id);
 
-        // Initialize guild and user storage if not present
-        if (!warningsStorage.has(guildId)) {
-            warningsStorage.set(guildId, new Map());
+        if (subcommand === 'add' || subcommand === 'clear') {
+            const member = await interaction.guild.members.fetch(target.id).catch(() => null);
+            const blocked = moderationBlocker(interaction, target, member);
+            if (blocked) return interaction.reply({ content: blocked, ephemeral: true });
         }
-        const guildWarnings = warningsStorage.get(guildId);
-
-        if (!guildWarnings.has(target.id)) {
-            guildWarnings.set(target.id, []);
-        }
-        const userWarnings = guildWarnings.get(target.id);
 
         if (subcommand === 'add') {
             const reason = interaction.options.getString('reason') || 'No reason provided';
-            const warningEntry = {
-                reason: reason,
+            list.push({
+                reason,
                 moderator: interaction.user.tag,
-                date: new Date().toLocaleDateString()
-            };
-
-            userWarnings.push(warningEntry);
+                date: new Date().toISOString().slice(0, 10),
+            });
+            setUserWarnings(guildId, target.id, list);
 
             const embed = new EmbedBuilder()
                 .setTitle('⚠️ Member Warned')
                 .setDescription(`Successfully warned **${target.tag}**.`)
                 .addFields(
                     { name: 'Reason', value: reason, inline: false },
-                    { name: 'Total Warnings', value: `${userWarnings.length}`, inline: true },
+                    { name: 'Total Warnings', value: `${list.length}`, inline: true },
                     { name: 'Moderator', value: interaction.user.tag, inline: true }
                 )
                 .setColor(0xFFA500)
                 .setTimestamp();
 
-            // Try to DM the user about the warning
-            try {
-                const dmEmbed = new EmbedBuilder()
-                    .setTitle(`⚠️ Bro You were warned in ${interaction.guild.name}`)
-                    .setDescription(`**Reason:** ${reason}\n**Total Warnings:** ${userWarnings.length}`)
-                    .setColor(0xFF0000)
-                    .setTimestamp();
-                await target.send({ embeds: [dmEmbed] });
-            } catch (err) {
-                // User DMs might be closed
-            }
+            const dmEmbed = new EmbedBuilder()
+                .setTitle(`⚠️ Bro You were warned in ${interaction.guild.name}`)
+                .setDescription(`**Reason:** ${reason}\n**Total Warnings:** ${list.length}`)
+                .setColor(0xFF0000)
+                .setTimestamp();
+            await target.send({ embeds: [dmEmbed] }).catch(() => { /* DMs closed */ });
 
             return interaction.reply({ embeds: [embed] });
         }
 
         if (subcommand === 'list') {
-            if (userWarnings.length === 0) {
+            if (list.length === 0) {
                 return interaction.reply({ content: `Bro, **${target.tag}** has no active warnings!`, ephemeral: true });
             }
 
             const embed = new EmbedBuilder()
                 .setTitle(`📋 Warnings for ${target.tag}`)
+                .setDescription(list.map((w, i) =>
+                    `**#${i + 1}** | **Reason:** ${w.reason}\n*By:* ${w.moderator} on *${w.date}*`
+                ).join('\n\n').slice(0, 4000))
                 .setColor(0x3498DB)
                 .setTimestamp();
-
-            const description = userWarnings.map((w, index) => 
-                `**#${index + 1}** | **Reason:** ${w.reason}\n*By:* ${w.moderator} on *${w.date}*`
-            ).join('\n\n');
-
-            embed.setDescription(description);
 
             return interaction.reply({ embeds: [embed], ephemeral: true });
         }
 
         if (subcommand === 'clear') {
-            if (userWarnings.length === 0) {
+            if (list.length === 0) {
                 return interaction.reply({ content: `Bro, **${target.tag}** already has zero warnings!`, ephemeral: true });
             }
 
-            guildWarnings.set(target.id, []);
+            setUserWarnings(guildId, target.id, []);
 
             const embed = new EmbedBuilder()
-                .setTitle('🧹Bro Warnings Cleared')
+                .setTitle('🧹 Bro Warnings Cleared')
                 .setDescription(`Successfully cleared all warnings for **${target.tag}**.`)
                 .setColor(0x00FF00)
                 .setTimestamp();
 
             return interaction.reply({ embeds: [embed] });
         }
-    }
+    },
 };

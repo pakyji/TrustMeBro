@@ -1,17 +1,28 @@
 {
   "name": "trust-me-bro-bot",
-  "version": "1.0.0",
-  "description": "A Discord bot featuring 200+ commands with a dynamic help menu. Trust me, bro.",
+  "version": "1.1.0",
+  "description": "TrustMeBro: a Discord bot with moderation, AI jokes, and music from direct audio links. Trust me, bro.",
   "main": "index.js",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pakyji/TrustMeBro.git"
+  },
   "scripts": {
-    "start": "node index.js"
+    "start": "node --env-file-if-exists=.env index.js",
+    "test": "node scripts/run-tests.js",
+    "check": "node scripts/check-syntax.js"
   },
   "dependencies": {
-    "@google/genai": "*",
-    "discord.js": "^14.14.0",
-    "openai": "^4.20.0"
+    "@discordjs/voice": "^0.19.2",
+    "@google/genai": "^2.30.0",
+    "discord.js": "^14.27.0",
+    "ffmpeg-static": "^5.3.0",
+    "libsodium-wrappers": "^0.7.16",
+    "openai": "^4.104.0",
+    "opusscript": "^0.0.8"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.12.0"
   }
 }
