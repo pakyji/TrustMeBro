@@ -29,7 +29,7 @@ const funnyPingResponses = [
     "If ignorance is bliss, you must be the happiest person alive.",
     "Bro, go find a hobby instead of harassing a bot.",
     "I am judging you silently through the screen.",
-    "Stop wasting my time, I have 200+ commands to handle!",
+    "Stop wasting my time, I have work to do!",
     "Bro, why do you sound like my ex? Always complaining and pinging.",
     "I'd agree with you, but then we'd both be wrong.",
     "Keep pinging me and I'll report you to the FBI (Federal Bot Inspector).",

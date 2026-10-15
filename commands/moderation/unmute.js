@@ -5,6 +5,7 @@ module.exports = {
         .setName('unmute')
         .setDescription('Remove timeout from a member.')
         .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
+        .setDMPermission(false)
         .addUserOption(option =>
             option.setName('target')
                 .setDescription('The user you want to unmute')
@@ -14,14 +15,18 @@ module.exports = {
             option.setName('reason')
                 .setDescription('Reason for unmuting')
                 .setRequired(false)
+                .setMaxLength(400)
         ),
 
-    async execute(interaction, client) {
+    async execute(interaction) {
+        if (!interaction.guild) {
+            return interaction.reply({ content: 'Bro, this command only works in a server.', ephemeral: true });
+        }
+
         const target = interaction.options.getUser('target');
         const reason = interaction.options.getString('reason') || 'No reason provided';
 
         const member = await interaction.guild.members.fetch(target.id).catch(() => null);
-
         if (!member) {
             return interaction.reply({ content: 'Bro, this member could not be found in the server!', ephemeral: true });
         }
@@ -31,7 +36,7 @@ module.exports = {
         }
 
         try {
-            await member.timeout(null, reason);
+            await member.timeout(null, `${reason} (by ${interaction.user.tag})`);
 
             const embed = new EmbedBuilder()
                 .setTitle('🔊 Mouth Unlocked!')
@@ -43,22 +48,17 @@ module.exports = {
                 .setColor(0x00FF00)
                 .setTimestamp();
 
-            try {
-                const dmEmbed = new EmbedBuilder()
-                    .setTitle('🔊 You got Unmuted!')
-                    .setDescription(`Bro, your timeout has been lifted in **${interaction.guild.name}**.\n\n**Reason:** ${reason}`)
-                    .setColor(0x00FF00)
-                    .setTimestamp();
-                await target.send({ embeds: [dmEmbed] });
-            } catch (err) {
-                // Ignore if user has DMs closed
-            }
+            const dmEmbed = new EmbedBuilder()
+                .setTitle('🔊 You got Unmuted!')
+                .setDescription(`Bro, your timeout has been lifted in **${interaction.guild.name}**.\n\n**Reason:** ${reason}`)
+                .setColor(0x00FF00)
+                .setTimestamp();
+            await target.send({ embeds: [dmEmbed] }).catch(() => { /* DMs closed */ });
 
             return interaction.reply({ embeds: [embed] });
-
         } catch (error) {
-            console.error('Unmute command execution error:', error);
+            console.error('Unmute command error:', error);
             return interaction.reply({ content: 'Bro, something went wrong, could not execute the unmute!', ephemeral: true });
         }
-    }
+    },
 };
