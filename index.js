@@ -84,6 +84,13 @@ client.once(Events.ClientReady, async (readyClient) => {
         console.error('Could not register slash commands:', error);
     }
 
+    // Start scheduled jobs (reminders, temporary bans). They survive restarts.
+    try {
+        require('./lib/jobs').init(readyClient);
+    } catch (error) {
+        console.error('Scheduler failed to start:', error);
+    }
+
     // Post the "live" message (with @everyone) in guilds that set it up, once per new build.
     try {
         await announceNewBuild(readyClient);

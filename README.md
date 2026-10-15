@@ -99,6 +99,26 @@ The default blocked list is `discord.gg`, `t.me`, `https://` and `http://`. Once
 
 Members with **Manage Messages** are not checked.
 
+## Commands (100 in total)
+
+The bot has 100 top-level slash commands, the Discord maximum. Type `/help` in Discord for the paged list.
+
+| Area | What it has |
+| --- | --- |
+| Moderation | `kick`, `softban`, `tempban`, `banlist`, `purge`, `slowmode`, `lock`, `unlock`, `nick`, `roleadd`, `roleremove`, `note` (staff notes), `wordfilter`, `antispam`, plus `ban`, `unban`, `mute`, `unmute`, `warn`, `antilink` |
+| Server | `roleinfo`, `roles`, `createrole`, `channelinfo`, `invites`, `autorole` |
+| Utility | `userinfo`, `serverinfo`, `avatar`, `ping`, `remind`, `reminders`, `poll`, `say`, `embed`, `calc`, `time`, `password`, `timestamp`, `invite`, `color`, `qr`, `base64`, `hash`, `uuid`, `countdown`, `afk`, `suggest`, `tip` |
+| Fun | `8ball`, `coinflip`, `dice`, `choose`, `rps`, `dog`, `catfact`, `rate`, `ship`, `hug`, `rizz`, `joke`, `mock`, `emojify`, `reverse`, `wyr`, `compliment`, `truthordare`, `trivia`, and the `*bro` AI commands |
+| Info | `weather`, `holidays`, `crypto`, `book`, `art`, `wiki`, `define`, `currency`, `person` |
+| Music | `play`, `queue`, `nowplaying`, `skip`, `skipto`, `pause`, `resume`, `stop`, `shuffle`, `remove`, `clear`, `loop`, `volume` |
+
+Notes:
+
+- Fun text commands accept a `language` option: English, Urdu, Italian or Hindi.
+- Reminders, temporary bans and the auto role run on a saved job list (`data/store.json`), so they still work after a restart.
+- Commands that need no API key use public services: Open-Meteo, Wikipedia, Open Library, Art Institute of Chicago, dictionaryapi.dev, Frankfurter (ECB rates), Nager.Date, CoinPaprika, dog.ceo, catfact.ninja and QR Server.
+- Moderation commands check the bot's permissions and role position first, and do not act on people above you.
+
 ## Development
 
 ```bash

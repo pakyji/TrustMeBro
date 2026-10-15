@@ -31,12 +31,27 @@ test('slash command definitions are valid and names are unique', () => {
     }
 });
 
-test('moderation and music commands are guild-only', () => {
-    const guildOnly = ['ban', 'mute', 'unmute', 'unban', 'warn', 'antilink', 'play', 'queue', 'skip', 'pause', 'resume', 'stop'];
-    for (const { command } of commands) {
-        if (guildOnly.includes(command.data.name)) {
-            assert.equal(command.data.toJSON().dm_permission, false, command.data.name);
+test('moderation, server and music commands are guild-only', () => {
+    const guildFolders = ['moderation', 'server', 'music'];
+    for (const { file, command } of commands) {
+        const folder = path.relative(commandsDir, file).split(path.sep)[0];
+        if (guildFolders.includes(folder)) {
+            assert.equal(command.data.toJSON().dm_permission, false, `${command.data.name} should be guild-only`);
         }
+    }
+});
+
+test('the bot has at most 100 top-level slash commands (Discord limit)', () => {
+    const top = commands.map(c => c.command.data.name);
+    assert.ok(top.length <= 100, `found ${top.length} commands`);
+    assert.equal(top.length, 100, 'the planned set is exactly 100');
+});
+
+test('every command name and description fits Discord limits', () => {
+    for (const { file, command } of commands) {
+        const json = command.data.toJSON();
+        assert.match(json.name, /^[a-z0-9_-]{1,32}$/, `${file} name`);
+        assert.ok(json.description.length >= 1 && json.description.length <= 100, `${file} description length`);
     }
 });
 
