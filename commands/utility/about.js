@@ -31,7 +31,7 @@ module.exports = {
                 { name: 'Commands', value: `${client.commands.size}`, inline: true },
                 { name: 'Ping', value: `${Math.round(client.ws.ping)} ms`, inline: true },
                 { name: 'Uptime', value: formatUptime(client.uptime ?? 0), inline: true },
-                { name: 'Features', value: '• Moderation (ban, mute, warn, anti-link)\n• AI jokes (/askbro, /heybro, /grokbro, /qwenbro)\n• Music from direct audio links (/play, /queue, /skip, /pause, /resume, /stop)\n• Welcome DMs for new members', inline: false },
+                { name: 'Features', value: '• Moderation (ban, mute, warn, anti-link)\n• AI jokes (/askbro, /heybro, /grokbro, /qwenbro)\n• Music by song name (Audius, Internet Archive) or direct audio links (/play, /queue, /skip, /pause, /resume, /stop)\n• Welcome DMs for new members', inline: false },
                 { name: 'Source code', value: REPO_URL, inline: false }
             )
             .setColor(0x00FF00)
