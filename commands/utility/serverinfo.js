@@ -11,19 +11,61 @@ module.exports = {
         if (requireGuild(interaction)) return;
         const g = interaction.guild;
         const owner = await g.fetchOwner().catch(() => null);
+
+        // Count channels by type
+        const textChannels = g.channels.cache.filter(c => c.isTextBased()).size;
+        const voiceChannels = g.channels.cache.filter(c => c.isVoiceBased()).size;
+        const categories = g.channels.cache.filter(c => c.type === 4).size;
+
+        // Count members by status (cached)
+        const members = g.members.cache;
+        const humans = members.filter(m => !m.user.bot).size;
+        const bots = members.filter(m => m.user.bot).size;
+
+        // Role info
+        const highestRole = g.roles.cache.filter(r => r.id !== g.id).sort((a, b) => b.position - a.position).first();
+        const boosters = g.premiumSubscriptionCount || 0;
+
+        // Features
+        const features = g.features.length > 0 ? g.features.join(', ') : 'None';
+
         const embed = new EmbedBuilder()
-            .setTitle(g.name)
+            .setTitle(`${g.name} Server Info`)
             .setThumbnail(g.iconURL({ size: 256 }))
+            .setColor(0x5865F2)
             .addFields(
-                { name: 'ID', value: g.id, inline: true },
-                { name: 'Owner', value: owner ? owner.user.tag : 'Unknown', inline: true },
-                { name: 'Created', value: `<t:${Math.floor(g.createdTimestamp / 1000)}:D>`, inline: true },
-                { name: 'Members', value: String(g.memberCount), inline: true },
-                { name: 'Channels', value: String(g.channels.cache.size), inline: true },
-                { name: 'Roles', value: String(g.roles.cache.size), inline: true },
-                { name: 'Boosts', value: `${g.premiumSubscriptionCount || 0} (tier ${g.premiumTier})`, inline: true },
-                { name: 'Verification', value: String(g.verificationLevel), inline: true },
-            );
+                { name: '📋 General', value: [
+                    `**ID:** ${g.id}`,
+                    `**Owner:** ${owner ? owner.user.tag : 'Unknown'}`,
+                    `**Created:** <t:${Math.floor(g.createdTimestamp / 1000)}:D> (<t:${Math.floor(g.createdTimestamp / 1000)}:R>)`,
+                    `**Verification:** ${g.verificationLevel}`,
+                    `**Features:** ${features}`,
+                ].join('\n'), inline: true },
+                { name: '👥 Members', value: [
+                    `**Total:** ${g.memberCount}`,
+                    `**Humans:** ${humans}`,
+                    `**Bots:** ${bots}`,
+                    `**Boosts:** ${boosters} (Tier ${g.premiumTier})`,
+                    `**Boosters:** ${g.premiumSubscriberRole ? g.premiumSubscriberRole.members.size : 0}`,
+                ].join('\n'), inline: true },
+                { name: '📺 Channels', value: [
+                    `**Total:** ${g.channels.cache.size}`,
+                    `**Text:** ${textChannels}`,
+                    `**Voice:** ${voiceChannels}`,
+                    `**Categories:** ${categories}`,
+                ].join('\n'), inline: true },
+                { name: '🎭 Roles', value: [
+                    `**Count:** ${g.roles.cache.size}`,
+                    `**Highest:** ${highestRole ? highestRole.name : 'None'}`,
+                ].join('\n'), inline: true },
+            )
+            .setFooter({ text: `Requested by ${interaction.user.tag}` })
+            .setTimestamp();
+
+        if (g.banner) {
+            embed.setImage(g.bannerURL({ size: 1024 }));
+        }
+
         return interaction.reply({ embeds: [embed], allowedMentions: { parse: [] } });
     },
 };

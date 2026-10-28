@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const { moderationBlocker } = require('../../lib/moderation');
+const modlog = require('../../commands/admin/modlog');
 
 // Discord timeouts last at most 28 days (40320 minutes).
 const MAX_MINUTES = 40320;
@@ -81,6 +82,20 @@ module.exports = {
                 .setColor(0xFF0000)
                 .setTimestamp();
             await target.send({ embeds: [dmEmbed] }).catch(() => { /* DMs closed */ });
+
+            // Log to modlog channel
+            await modlog.log(interaction.guild, {
+                title: '🤐 Member Muted',
+                description: `**${target.tag}** (\`${target.id}\`) was timed out.`,
+                fields: [
+                    { name: 'Moderator', value: interaction.user.tag, inline: true },
+                    { name: 'Duration', value: `${durationMinutes} minutes`, inline: true },
+                    { name: 'Reason', value: reason, inline: true },
+                ],
+                color: 0xFF4500,
+                moderator: interaction.user.tag,
+                user: target,
+            });
 
             return interaction.reply({ embeds: [embed] });
         } catch (error) {

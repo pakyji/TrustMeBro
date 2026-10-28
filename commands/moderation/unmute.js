@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const modlog = require('../../commands/admin/modlog');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -54,6 +55,19 @@ module.exports = {
                 .setColor(0x00FF00)
                 .setTimestamp();
             await target.send({ embeds: [dmEmbed] }).catch(() => { /* DMs closed */ });
+
+            // Log to modlog channel
+            await modlog.log(interaction.guild, {
+                title: '🔊 Member Unmuted',
+                description: `**${target.tag}** (\`${target.id}\`) was unmuted.`,
+                fields: [
+                    { name: 'Moderator', value: interaction.user.tag, inline: true },
+                    { name: 'Reason', value: reason, inline: true },
+                ],
+                color: 0x00FF00,
+                moderator: interaction.user.tag,
+                user: target,
+            });
 
             return interaction.reply({ embeds: [embed] });
         } catch (error) {

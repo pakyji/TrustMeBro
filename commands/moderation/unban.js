@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const modlog = require('../../commands/admin/modlog');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -51,6 +52,19 @@ module.exports = {
                 )
                 .setColor(0x00FF00)
                 .setTimestamp();
+
+            // Log to modlog channel
+            await modlog.log(interaction.guild, {
+                title: '🔓 Member Unbanned',
+                description: `**${bannedEntry.user.tag}** (\`${userId}\`) was unbanned.`,
+                fields: [
+                    { name: 'Moderator', value: interaction.user.tag, inline: true },
+                    { name: 'Reason', value: reason, inline: true },
+                ],
+                color: 0x00FF00,
+                moderator: interaction.user.tag,
+                user: bannedEntry.user,
+            });
 
             return interaction.editReply({ embeds: [embed] });
         } catch (error) {

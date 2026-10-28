@@ -102,26 +102,39 @@ client.once(Events.ClientReady, async (readyClient) => {
 client.on(Events.Error, (error) => console.error('Discord client error:', error));
 
 client.on(Events.InteractionCreate, async (interaction) => {
-    if (!interaction.isChatInputCommand()) return;
+    if (interaction.isChatInputCommand()) {
+        const command = client.commands.get(interaction.commandName);
+        if (!command) return;
 
-    const command = client.commands.get(interaction.commandName);
-    if (!command) return;
-
-    try {
-        await command.execute(interaction, client);
-    } catch (error) {
-        console.error(`Error in /${interaction.commandName}:`, error);
-        const text = 'Bro, something broke while running this command. Try again later!';
         try {
-            // Use editReply / followUp if the interaction was already acknowledged.
-            if (interaction.deferred || interaction.replied) {
-                await interaction.editReply({ content: text }).catch(() => interaction.followUp({ content: text, ephemeral: true }));
-            } else {
-                await interaction.reply({ content: text, ephemeral: true });
+            await command.execute(interaction, client);
+        } catch (error) {
+            console.error(`Error in /${interaction.commandName}:`, error);
+            const text = 'Bro, something broke while running this command. Try again later!';
+            try {
+                if (interaction.deferred || interaction.replied) {
+                    await interaction.editReply({ content: text }).catch(() => interaction.followUp({ content: text, ephemeral: true }));
+                } else {
+                    await interaction.reply({ content: text, ephemeral: true });
+                }
+            } catch (replyError) {
+                console.error('Could not send the error reply:', replyError.message);
             }
-        } catch (replyError) {
-            console.error('Could not send the error reply:', replyError.message);
         }
+        return;
+    }
+
+    // Handle button interactions for reaction roles
+    if (interaction.isButton()) {
+        const reactionRoleCmd = client.commands.get('reactionrole');
+        if (reactionRoleCmd && typeof reactionRoleCmd.handleInteraction === 'function') {
+            try {
+                await reactionRoleCmd.handleInteraction(interaction, client);
+            } catch (error) {
+                console.error('Error in reaction role button:', error);
+            }
+        }
+        return;
     }
 });
 

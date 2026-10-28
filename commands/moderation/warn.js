@@ -63,6 +63,22 @@ module.exports = {
                         .setDescription('The user to clear warnings for')
                         .setRequired(true)
                 )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('remove')
+                .setDescription('Remove a specific warning by index.')
+                .addUserOption(option =>
+                    option.setName('target')
+                        .setDescription('The user to remove warning from')
+                        .setRequired(true)
+                )
+                .addIntegerOption(option =>
+                    option.setName('index')
+                        .setDescription('Warning number to remove (1 = oldest)')
+                        .setMinValue(1)
+                        .setRequired(true)
+                )
         ),
 
     async execute(interaction) {
@@ -137,6 +153,33 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setTitle('🧹 Bro Warnings Cleared')
                 .setDescription(`Successfully cleared all warnings for **${target.tag}**.`)
+                .setColor(0x00FF00)
+                .setTimestamp();
+
+            return interaction.reply({ embeds: [embed] });
+        }
+
+        if (subcommand === 'remove') {
+            const member = await interaction.guild.members.fetch(target.id).catch(() => null);
+            const blocked = moderationBlocker(interaction, target, member);
+            if (blocked) return interaction.reply({ content: blocked, ephemeral: true });
+
+            const index = interaction.options.getInteger('index');
+            if (index < 1 || index > list.length) {
+                return interaction.reply({ content: `Bro, invalid warning index. ${target.tag} has ${list.length} warning(s).`, ephemeral: true });
+            }
+
+            const removed = list.splice(index - 1, 1)[0];
+            setUserWarnings(guildId, target.id, list);
+
+            const embed = new EmbedBuilder()
+                .setTitle('🗑️ Warning Removed')
+                .setDescription(`Removed warning **#${index}** from **${target.tag}**.`)
+                .addFields(
+                    { name: 'Removed Reason', value: removed.reason, inline: false },
+                    { name: 'Remaining Warnings', value: `${list.length}`, inline: true },
+                    { name: 'Moderator', value: interaction.user.tag, inline: true }
+                )
                 .setColor(0x00FF00)
                 .setTimestamp();
 

@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const { moderationBlocker } = require('../../lib/moderation');
+const modlog = require('../../commands/admin/modlog');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -70,6 +71,20 @@ module.exports = {
                 )
                 .setColor(0xFF0000)
                 .setTimestamp();
+
+            // Log to modlog channel
+            await modlog.log(interaction.guild, {
+                title: '🔨 Member Banned',
+                description: `**${target.tag}** (\`${target.id}\`) was banned.`,
+                fields: [
+                    { name: 'Moderator', value: interaction.user.tag, inline: true },
+                    { name: 'Reason', value: reason, inline: true },
+                    { name: 'Delete Messages', value: `${deleteMessageDays} day(s)`, inline: true },
+                ],
+                color: 0xFF0000,
+                moderator: interaction.user.tag,
+                user: target,
+            });
 
             return interaction.editReply({ embeds: [embed] });
         } catch (error) {
