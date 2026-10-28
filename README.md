@@ -18,9 +18,9 @@ A Discord bot with moderation tools, AI-powered jokes, and music played from dir
 
 | Area | Commands |
 | --- | --- |
-| Moderation | `/ban`, `/unban`, `/mute`, `/unmute`, `/warn add\|list\|clear`, `/antilink toggle\|add\|remove\|list` |
+| Moderation | `/ban`, `/unban`, `/mute`, `/unmute`, `/warn add\|list\|clear\|remove`, `/antilink toggle\|add\|remove\|list`, `/modlog channel\|off\|status` |
 | AI Jokes | `/askbro` (Gemini), `/heybro` (OpenRouter), `/grokbro` (xAI Grok), `/qwenbro` (BazaarLink) |
-| Music | `/play <song name or audio link>`, `/queue`, `/skip`, `/pause`, `/resume`, `/stop` |
+| Music | `/play <song name or audio link>`, `/queue show\|export\|import`, `/skip`, `/skipto`, `/pause`, `/resume`, `/stop`, `/shuffle`, `/remove`, `/clear`, `/loop`, `/volume` |
 | Fun | `/aura`, `/fakefact`, mention responses |
 | Utility | `/help` (paged menu), `/about` |
 | Announcements | `/announce channel\|test\|status\|off\|update` (update message with @everyone) |
@@ -167,6 +167,25 @@ You can check for updates, pull changes, and announce them directly from Discord
 
 ---
 
+## Moderation Log
+
+Track all moderation actions in a dedicated channel.
+
+1. Run `/modlog channel channel:#your-modlog-channel` (needs Manage Server). The bot needs **Send Messages** and **Embed Links** in that channel.
+2. All bans, unbans, kicks, mutes, unmutes, and tempbans will be logged with moderator, reason, and target info.
+3. Run `/modlog off` to disable.
+
+---
+
+## Queue Export / Import
+
+Save and restore music queues:
+
+- `/queue export` — Outputs the current queue as JSON (copy and save it)
+- `/queue import <json>` — Restores a queue from exported JSON (must be in a voice channel)
+
+---
+
 ## Anti-Link
 
 The default blocked list is `discord.gg`, `t.me`, `https://` and `http://`. Once anti-link is **ON**, any message containing `http://` or `https://` is removed, which blocks all web links. To allow ordinary links, remove those two entries with `/antilink remove`.
@@ -181,7 +200,7 @@ The bot has 100 top-level slash commands, the Discord maximum. Type `/help` in D
 
 | Area | What it has |
 | --- | --- |
-| Moderation | `kick`, `softban`, `tempban`, `banlist`, `purge`, `slowmode`, `lock`, `unlock`, `nick`, `roleadd`, `roleremove`, `note` (staff notes), `wordfilter`, `antispam`, plus `ban`, `unban`, `mute`, `unmute`, `warn`, `antilink` |
+| Moderation | `kick`, `softban`, `tempban`, `banlist`, `purge`, `slowmode`, `lock`, `unlock`, `nick`, `roleadd`, `roleremove`, `note` (staff notes), `wordfilter`, `antispam`, `modlog`, plus `ban`, `unban`, `mute`, `unmute`, `warn`, `antilink` |
 | Server | `roleinfo`, `roles`, `createrole`, `channelinfo`, `invites`, `autorole` |
 | Utility | `userinfo`, `serverinfo`, `avatar`, `ping`, `remind`, `reminders`, `poll`, `say`, `embed`, `calc`, `time`, `password`, `timestamp`, `invite`, `color`, `qr`, `base64`, `hash`, `uuid`, `countdown`, `afk`, `suggest`, `tip` |
 | Fun | `8ball`, `coinflip`, `dice`, `choose`, `rps`, `dog`, `catfact`, `rate`, `ship`, `hug`, `rizz`, `joke`, `mock`, `emojify`, `reverse`, `wyr`, `compliment`, `truthordare`, `trivia`, and the `*bro` AI commands |
@@ -194,6 +213,9 @@ The bot has 100 top-level slash commands, the Discord maximum. Type `/help` in D
 - Reminders, temporary bans and the auto role run on a saved job list (`data/store.json`), so they still work after a restart.
 - Commands that need no API key use public services: Open-Meteo, Wikipedia, Open Library, Art Institute of Chicago, dictionaryapi.dev, Frankfurter (ECB rates), Nager.Date, CoinPaprika, dog.ceo, catfact.ninja and QR Server.
 - Moderation commands check the bot's permissions and role position first, and do not act on people above you.
+- **Moderation Log:** Set up a log channel with `/modlog channel` to track all bans, mutes, kicks, unbans, and tempbans.
+- **Warning Management:** Use `/warn remove` to remove a specific warning by index.
+- **Queue Export/Import:** Save and restore music queues with `/queue export` and `/queue import`.
 
 ---
 
