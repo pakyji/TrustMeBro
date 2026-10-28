@@ -7,6 +7,9 @@
 [![Code Style](https://img.shields.io/badge/code%20style-standard-brightgreen)](https://standardjs.com)
 [![GitHub Stars](https://img.shields.io/github/stars/pakyji/TrustMeBro?style=social)](https://github.com/pakyji/TrustMeBro)
 [![GitHub Forks](https://img.shields.io/github/forks/pakyji/TrustMeBro?style=social)](https://github.com/pakyji/TrustMeBro/fork)
+[![Ticket System](https://img.shields.io/badge/Ticket%20System-✅-brightgreen)](https://github.com/pakyji/TrustMeBro)
+[![Invite Tracker](https://img.shields.io/badge/Invite%20Tracker-✅-brightgreen)](https://github.com/pakyji/TrustMeBro)
+[![Giveaways](https://img.shields.io/badge/Giveaways-✅-brightgreen)](https://github.com/pakyji/TrustMeBro)
 
 A Discord bot with moderation tools, AI-powered jokes, and music played from direct audio links.
 
@@ -21,10 +24,11 @@ A Discord bot with moderation tools, AI-powered jokes, and music played from dir
 | Moderation | `/ban`, `/unban`, `/mute`, `/unmute`, `/warn add\|list\|clear\|remove`, `/antilink toggle\|add\|remove\|list`, `/modlog channel\|off\|status` |
 | AI | `/ai` (Gemini, OpenRouter, Grok, Qwen - auto-selects or choose provider) |
 | Music | `/play <song name or audio link>`, `/queue show\|export\|import`, `/skip`, `/skipto`, `/pause`, `/resume`, `/stop`, `/shuffle`, `/remove`, `/clear`, `/loop`, `/volume` |
-| Fun | `/aura`, `/fakefact`, mention responses |
-| Utility | `/help` (paged menu), `/about` |
+| Fun | `/aura`, `/fakefact`, `/giveaway`, mention responses |
+| Utility | `/help` (paged menu), `/about`, `/invite` |
+| Server | `/invitestats`, `/ticket` |
 | Announcements | `/announce channel\|test\|status\|off\|update` (update message with @everyone) |
-| Events | Welcome DM to new members |
+| Events | Welcome DM to new members, invite join/leave logging |
 
 Warnings, anti-link settings, reminders, and temporary bans are saved to `data/store.json`, so they survive restarts.
 
@@ -194,6 +198,75 @@ Members with **Manage Messages** are not checked.
 
 ---
 
+## Ticket System
+
+A full-featured ticket system for support channels.
+
+**Setup:**
+1. Run `/ticket setup category:#category supportrole:@role [logchannel:#channel]` (needs Manage Server)
+2. Run `/ticket panel channel:#channel [title] [description]` to create a ticket panel with a button
+
+**Features:**
+- `/ticket panel` — Create a panel with a "Create Ticket" button
+- Users click the button to create a private ticket channel
+- `/ticket close [reason]` — Close the ticket (generates transcript, logs to log channel, DMs user)
+- `/ticket claim` — Claim a ticket (support role only)
+- `/ticket add @user` / `/ticket remove @user` — Manage ticket participants
+- `/ticket transcript` — Generate a transcript of the ticket
+- `/ticket settings` — View current ticket system configuration
+
+Transcripts are saved as text files and sent to the log channel and the ticket creator via DM.
+
+---
+
+## Invite Tracker
+
+Track server invites, show leaderboards, and welcome new members with invite info.
+
+**Setup:**
+1. Run `/invitestats setup [logchannel:#channel] [welcomechannel:#channel]` (needs Manage Server)
+2. Optional: `/invitestats config [welcome_message] [dm_welcome:true/false] [track_fake:true/false]`
+
+**Commands:**
+- `/invitestats leaderboard [limit:10]` — Show top inviters
+- `/invitestats stats [@user]` — Show invite stats for a user (regular, left, fake, bonus, total)
+- `/invitestats reset [@user] [confirm:"confirm"]` — Reset stats for a user or everyone
+- `/invitestats status` — Show tracker configuration and stats
+- `/invitestats sync` — Manually sync invite cache with Discord
+- `/invitestats addbonus @user <amount>` — Add bonus invites (admin)
+- `/invitestats removebonus @user <amount>` — Remove bonus invites (admin)
+
+**Welcome Messages:**
+Customize with placeholders: `{user}`, `{inviter}`, `{invites}`, `{code}`
+
+**Features:**
+- Logs joins/leaves to configured channel
+- Sends welcome messages in channel and/or DM
+- Tracks regular, left, fake/vanity, and bonus invites
+- Periodic cache sync with Discord
+
+---
+
+## Giveaways
+
+Create and manage giveaways with button-based entry.
+
+**Commands:**
+- `/giveaway create channel:#channel duration:1h prize:"Discord Nitro" [winners:1] [required_role:@role]` — Create a giveaway
+- `/giveaway end message_id:<id>` — End a giveaway early
+- `/giveaway reroll message_id:<id>` — Reroll winners
+- `/giveaway list` — List active giveaways
+
+**Features:**
+- Button-based entry (click to join)
+- Automatic winner selection when time expires
+- DM notification to winners
+- Required role support (optional)
+- Reroll functionality
+- Winners announced in channel and DM'd
+
+---
+
 ## Commands (100 in Total)
 
 The bot has 100 top-level slash commands, the Discord maximum. Type `/help` in Discord for the paged list.
@@ -216,6 +289,9 @@ The bot has 100 top-level slash commands, the Discord maximum. Type `/help` in D
 - **Moderation Log:** Set up a log channel with `/modlog channel` to track all bans, mutes, kicks, unbans, and tempbans.
 - **Warning Management:** Use `/warn remove` to remove a specific warning by index.
 - **Queue Export/Import:** Save and restore music queues with `/queue export` and `/queue import`.
+- **Ticket System:** Full ticket workflow with panels, transcripts, claims, and logging.
+- **Invite Tracker:** Track invites, leaderboards, welcome messages with invite info.
+- **Giveaways:** Button-based entry, auto-end, reroll, DM winners.
 
 ---
 

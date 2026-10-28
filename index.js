@@ -2,6 +2,8 @@ const { Client, GatewayIntentBits, Collection, REST, Routes, Events } = require(
 const fs = require('fs');
 const path = require('path');
 const { announceNewBuild } = require('./lib/announce');
+const inviteStatsCmd = require('./commands/server/invite');
+const giveawayCmd = require('./commands/fun/giveaway');
 
 // Keep the process alive on unexpected errors. They are logged, not hidden.
 process.on('unhandledRejection', (reason) => console.error('Unhandled promise rejection:', reason));
@@ -134,6 +136,16 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 console.error('Error in reaction role button:', error);
             }
         }
+
+        // Handle ticket buttons
+        const ticketCmd = client.commands.get('ticket');
+        if (ticketCmd && typeof ticketCmd.handleInteraction === 'function') {
+            try {
+                await ticketCmd.handleInteraction(interaction, client);
+            } catch (error) {
+                console.error('Error in ticket button:', error);
+            }
+        }
         return;
     }
 });
@@ -148,6 +160,34 @@ client.on(Events.MessageCreate, async (message) => {
             await command.handleMessage(message);
         } catch (error) {
             console.error(`Error in handleMessage for /${name}:`, error);
+        }
+    }
+});
+
+// Invite tracker events
+client.on(Events.GuildMemberAdd, async (member) => {
+    try {
+        await inviteStatsCmd.handleGuildMemberAdd(member);
+    } catch (error) {
+        console.error('Error in invite tracker member add:', error);
+    }
+});
+
+client.on(Events.GuildMemberRemove, async (member) => {
+    try {
+        await inviteStatsCmd.handleGuildMemberRemove(member);
+    } catch (error) {
+        console.error('Error in invite tracker member remove:', error);
+    }
+});
+
+// Giveaway button interactions
+client.on(Events.InteractionCreate, async (interaction) => {
+    if (interaction.isButton() && interaction.customId.startsWith('giveaway_enter_')) {
+        try {
+            await giveawayCmd.handleInteraction(interaction, client);
+        } catch (error) {
+            console.error('Error in giveaway button:', error);
         }
     }
 });
