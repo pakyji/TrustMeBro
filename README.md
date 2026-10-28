@@ -1,22 +1,34 @@
 # TrustMeBro 🤖
 
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.12-brightgreen?logo=node.js)](https://nodejs.org)
+[![Discord.js](https://img.shields.io/badge/discord.js-14.27.0-blue?logo=discord)](https://discord.js.org)
+[![License](https://img.shields.io/github/license/pakyji/TrustMeBro)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-45%20passing-brightgreen)](https://github.com/pakyji/TrustMeBro/actions)
+[![Code Style](https://img.shields.io/badge/code%20style-standard-brightgreen)](https://standardjs.com)
+[![GitHub Stars](https://img.shields.io/github/stars/pakyji/TrustMeBro?style=social)](https://github.com/pakyji/TrustMeBro)
+[![GitHub Forks](https://img.shields.io/github/forks/pakyji/TrustMeBro?style=social)](https://github.com/pakyji/TrustMeBro/fork)
+
 A Discord bot with moderation tools, AI-powered jokes, and music played from direct audio links.
 
 > ⚠️ **Jokes are jokes.** Fake facts, aura scores and "100% real" answers are for fun. AI answers come from third-party models and can be wrong.
+
+---
 
 ## Features
 
 | Area | Commands |
 | --- | --- |
-| Moderation | `/ban`, `/unban`, `/mute`, `/unmute`, `/warn add|list|clear`, `/antilink toggle|add|remove|list` |
-| AI jokes | `/askbro` (Gemini), `/heybro` (OpenRouter), `/grokbro` (xAI Grok), `/qwenbro` (BazaarLink) |
+| Moderation | `/ban`, `/unban`, `/mute`, `/unmute`, `/warn add\|list\|clear`, `/antilink toggle\|add\|remove\|list` |
+| AI Jokes | `/askbro` (Gemini), `/heybro` (OpenRouter), `/grokbro` (xAI Grok), `/qwenbro` (BazaarLink) |
 | Music | `/play <song name or audio link>`, `/queue`, `/skip`, `/pause`, `/resume`, `/stop` |
 | Fun | `/aura`, `/fakefact`, mention responses |
 | Utility | `/help` (paged menu), `/about` |
-| Announcements | `/announce channel|test|status|off` (update message with @everyone) |
+| Announcements | `/announce channel\|test\|status\|off\|update` (update message with @everyone) |
 | Events | Welcome DM to new members |
 
-Warnings and anti-link settings are saved to `data/store.json`, so they survive restarts.
+Warnings, anti-link settings, reminders, and temporary bans are saved to `data/store.json`, so they survive restarts.
+
+---
 
 ## Requirements
 
@@ -24,9 +36,49 @@ Warnings and anti-link settings are saved to `data/store.json`, so they survive 
 - A Discord application with a bot user.
 - An always-on machine or server to keep the bot running.
 
-## Setup
+---
 
-### 1. Create the bot
+## Quick Start
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/pakyji/TrustMeBro.git
+cd TrustMeBro
+
+# 2. Install dependencies (uses package-lock.json)
+npm ci
+
+# 3. Configure environment
+cp .env.example .env
+# Edit .env: set TOKEN, and any AI keys you want to use
+
+# 4. Start the bot
+npm start
+```
+
+Only `TOKEN` is required. A command whose AI key is missing replies with a short "key is missing" message instead of crashing the bot.
+
+---
+
+## Environment Variables
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `TOKEN` | yes | Discord bot token |
+| `GEMINI_API_KEY` | for `/askbro` | Google Gemini key. Several keys can be comma-separated; one is picked at random per request. |
+| `OPENROUTER_API_KEY` | for `/heybro` | OpenRouter key |
+| `GROK_API_KEY` | for `/grokbro` | xAI key |
+| `BAZAAR_API_KEY` | for `/qwenbro` | BazaarLink key |
+| `GEMINI_MODEL`, `OPENROUTER_MODEL`, `GROK_MODEL`, `BAZAAR_MODEL` | no | Override the model name. Model catalogues change, so check your provider's list if a command starts failing. |
+| `STORE_PATH` | no | Where to save warnings and anti-link settings. Default: `data/store.json`. |
+
+Keep `.env` private. It is listed in `.gitignore`.
+
+---
+
+## Bot Setup
+
+### 1. Create the Bot
 
 1. Open the [Discord Developer Portal](https://discord.com/developers/applications) and create an application.
 2. Under **Bot**, copy the token. Keep it secret.
@@ -41,32 +93,21 @@ Warnings and anti-link settings are saved to `data/store.json`, so they survive 
 
 Global slash commands can take up to an hour to appear in every server.
 
-### 2. Install and configure
+### 2. Run with PM2 (Recommended for Production)
 
 ```bash
-git clone https://github.com/pakyji/TrustMeBro.git
-cd TrustMeBro
-npm ci            # uses package-lock.json
-cp .env.example .env
-# edit .env: set TOKEN, and any AI keys you want to use
-npm start
+# Install PM2 globally
+npm install -g pm2
+
+# Start the bot with PM2
+pm2 start index.js --name trustmebro
+
+# Save PM2 process list for auto-restart on reboot
+pm2 save
+pm2 startup
 ```
 
-Only `TOKEN` is required. A command whose AI key is missing replies with a short "key is missing" message instead of crashing the bot.
-
-### Environment variables
-
-| Variable | Required | Purpose |
-| --- | --- | --- |
-| `TOKEN` | yes | Discord bot token |
-| `GEMINI_API_KEY` | for `/askbro` | Google Gemini key. Several keys can be comma-separated; one is picked at random per request. |
-| `OPENROUTER_API_KEY` | for `/heybro` | OpenRouter key |
-| `GROK_API_KEY` | for `/grokbro` | xAI key |
-| `BAZAAR_API_KEY` | for `/qwenbro` | BazaarLink key |
-| `GEMINI_MODEL`, `OPENROUTER_MODEL`, `GROK_MODEL`, `BAZAAR_MODEL` | no | Override the model name. Model catalogues change, so check your provider's list if a command starts failing. |
-| `STORE_PATH` | no | Where to save warnings and anti-link settings. Default: `data/store.json`. |
-
-Keep `.env` private. It is listed in `.gitignore`.
+---
 
 ## Music
 
@@ -78,7 +119,9 @@ Keep `.env` private. It is listed in `.gitignore`.
 - Links must use http or https. The bot refuses links that point to local or private network addresses, and it checks each redirect.
 - Audio is decoded with the bundled ffmpeg (`ffmpeg-static`), so no system ffmpeg is needed.
 
-## Update announcements
+---
+
+## Update Announcements
 
 When the bot starts with a new build, it can post a "TrustMeBro is live!" message with **@everyone** in a channel you choose.
 
@@ -86,12 +129,14 @@ When the bot starts with a new build, it can post a "TrustMeBro is live!" messag
 2. Run `/announce test` to check that the message posts correctly.
 3. Update the bot and restart it. The message is sent once per new build.
 
-What counts as a new build:
+### What counts as a new build:
 
 - If the bot runs from a git clone, the git commit changes after `git pull`. The message shows the new commit and its subject line.
 - If you update without git, **bump `version` in package.json**. Otherwise the bot treats it as the same build.
 
 Restarts with the same build send nothing. If a server is missing the permission, nothing is sent, and the bot tries again on the next start. `/announce off` turns it off.
+
+---
 
 ## Update from Discord
 
@@ -100,26 +145,37 @@ You can check for updates, pull changes, and announce them directly from Discord
 | Subcommand | Description |
 |------------|-------------|
 | `/announce update check` | Check for updates without applying them. Shows how many commits behind and the commit messages. |
-| `/announce update apply` | Pull the latest changes from GitHub and send the update announcement to all configured servers. |
+| `/announce update apply` | Pull the latest changes from GitHub and send the update announcement to all configured servers. **Marks build as announced** so restart won't ping again. |
 | `/announce update restart` | Pull changes, announce, and restart the bot via PM2 (or shows manual restart instructions). |
 
-**Requirements:**
+### Requirements:
 - The bot must be running from a git clone (not a zip download)
 - For `/announce update restart`: PM2 must be installed and managing the bot (process name `trustmebro` or use `pm2 restart all`)
 - The bot needs **Administrator** permission in the server to run the command
 
-**Example workflow:**
+### Example Workflow:
+
 1. Run `/announce update check` to see if updates are available
 2. Run `/announce update apply` to pull and announce (then restart manually via your process manager)
 3. Or run `/announce update restart` to pull, announce, and auto-restart via PM2
 
-## Anti-link
+**Smart Announcement Logic:** When you run `/announce update apply` or `/announce update restart`, the bot:
+- Pulls the latest code from GitHub
+- Sends `@everyone TrustMeBro is live!` to **all servers** with `/announce channel` configured
+- **Updates `lastBuild` in the store** so the automatic startup announcement **won't ping again** on restart
+- You restart the bot → no duplicate pings!
+
+---
+
+## Anti-Link
 
 The default blocked list is `discord.gg`, `t.me`, `https://` and `http://`. Once anti-link is **ON**, any message containing `http://` or `https://` is removed, which blocks all web links. To allow ordinary links, remove those two entries with `/antilink remove`.
 
 Members with **Manage Messages** are not checked.
 
-## Commands (100 in total)
+---
+
+## Commands (100 in Total)
 
 The bot has 100 top-level slash commands, the Discord maximum. Type `/help` in Discord for the paged list.
 
@@ -132,12 +188,14 @@ The bot has 100 top-level slash commands, the Discord maximum. Type `/help` in D
 | Info | `weather`, `holidays`, `crypto`, `book`, `art`, `wiki`, `define`, `currency`, `person` |
 | Music | `play`, `queue`, `nowplaying`, `skip`, `skipto`, `pause`, `resume`, `stop`, `shuffle`, `remove`, `clear`, `loop`, `volume` |
 
-Notes:
+### Notes:
 
 - Fun text commands accept a `language` option: English, Urdu, Italian or Hindi.
 - Reminders, temporary bans and the auto role run on a saved job list (`data/store.json`), so they still work after a restart.
 - Commands that need no API key use public services: Open-Meteo, Wikipedia, Open Library, Art Institute of Chicago, dictionaryapi.dev, Frankfurter (ECB rates), Nager.Date, CoinPaprika, dog.ceo, catfact.ninja and QR Server.
 - Moderation commands check the bot's permissions and role position first, and do not act on people above you.
+
+---
 
 ## Development
 
@@ -148,7 +206,9 @@ npm run check     # syntax check of every .js file
 
 The tests do not connect to Discord. Test voice playback in a real server before relying on it.
 
-## Project layout
+---
+
+## Project Layout
 
 ```
 index.js            loader, events, slash-command registration
@@ -159,12 +219,22 @@ test/               node:test unit tests
 data/               runtime data (git-ignored)
 ```
 
-## Known limits
+---
+
+## Known Limits
 
 - Song search covers Audius and the Internet Archive only. Major commercial catalogues are not available. Direct links work for any public audio file. Music has not been tested against a live Discord voice channel.
 - AI answers are generated by third-party models and are not checked for accuracy.
 - The bot does not record or receive voice audio.
 
+---
+
 ## Contributing
 
 Pull requests are welcome. Run `npm test` and `npm run check` before opening one.
+
+---
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
