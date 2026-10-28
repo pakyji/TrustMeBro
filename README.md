@@ -93,6 +93,26 @@ What counts as a new build:
 
 Restarts with the same build send nothing. If a server is missing the permission, nothing is sent, and the bot tries again on the next start. `/announce off` turns it off.
 
+## Update from Discord
+
+You can check for updates, pull changes, and announce them directly from Discord using the `/announce update` command (requires **Administrator** permission).
+
+| Subcommand | Description |
+|------------|-------------|
+| `/announce update check` | Check for updates without applying them. Shows how many commits behind and the commit messages. |
+| `/announce update apply` | Pull the latest changes from GitHub and send the update announcement to all configured servers. |
+| `/announce update restart` | Pull changes, announce, and restart the bot via PM2 (or shows manual restart instructions). |
+
+**Requirements:**
+- The bot must be running from a git clone (not a zip download)
+- For `/announce update restart`: PM2 must be installed and managing the bot (process name `trustmebro` or use `pm2 restart all`)
+- The bot needs **Administrator** permission in the server to run the command
+
+**Example workflow:**
+1. Run `/announce update check` to see if updates are available
+2. Run `/announce update apply` to pull and announce (then restart manually via your process manager)
+3. Or run `/announce update restart` to pull, announce, and auto-restart via PM2
+
 ## Anti-link
 
 The default blocked list is `discord.gg`, `t.me`, `https://` and `http://`. Once anti-link is **ON**, any message containing `http://` or `https://` is removed, which blocks all web links. To allow ordinary links, remove those two entries with `/antilink remove`.
