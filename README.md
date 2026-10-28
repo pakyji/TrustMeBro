@@ -19,7 +19,7 @@ A Discord bot with moderation tools, AI-powered jokes, and music played from dir
 | Area | Commands |
 | --- | --- |
 | Moderation | `/ban`, `/unban`, `/mute`, `/unmute`, `/warn add\|list\|clear\|remove`, `/antilink toggle\|add\|remove\|list`, `/modlog channel\|off\|status` |
-| AI Jokes | `/askbro` (Gemini), `/heybro` (OpenRouter), `/grokbro` (xAI Grok), `/qwenbro` (BazaarLink) |
+| AI | `/ai` (Gemini, OpenRouter, Grok, Qwen - auto-selects or choose provider) |
 | Music | `/play <song name or audio link>`, `/queue show\|export\|import`, `/skip`, `/skipto`, `/pause`, `/resume`, `/stop`, `/shuffle`, `/remove`, `/clear`, `/loop`, `/volume` |
 | Fun | `/aura`, `/fakefact`, mention responses |
 | Utility | `/help` (paged menu), `/about` |
@@ -203,7 +203,7 @@ The bot has 100 top-level slash commands, the Discord maximum. Type `/help` in D
 | Moderation | `kick`, `softban`, `tempban`, `banlist`, `purge`, `slowmode`, `lock`, `unlock`, `nick`, `roleadd`, `roleremove`, `note` (staff notes), `wordfilter`, `antispam`, `modlog`, plus `ban`, `unban`, `mute`, `unmute`, `warn`, `antilink` |
 | Server | `roleinfo`, `roles`, `createrole`, `channelinfo`, `invites`, `autorole` |
 | Utility | `userinfo`, `serverinfo`, `avatar`, `ping`, `remind`, `reminders`, `poll`, `say`, `embed`, `calc`, `time`, `password`, `timestamp`, `invite`, `color`, `qr`, `base64`, `hash`, `uuid`, `countdown`, `afk`, `suggest`, `tip` |
-| Fun | `8ball`, `coinflip`, `dice`, `choose`, `rps`, `dog`, `catfact`, `rate`, `ship`, `hug`, `rizz`, `joke`, `mock`, `emojify`, `reverse`, `wyr`, `compliment`, `truthordare`, `trivia`, and the `*bro` AI commands |
+| Fun | `8ball`, `coinflip`, `dice`, `choose`, `rps`, `dog`, `catfact`, `rate`, `ship`, `hug`, `rizz`, `joke`, `mock`, `emojify`, `reverse`, `wyr`, `compliment`, `truthordare`, `trivia`, `ai` |
 | Info | `weather`, `holidays`, `crypto`, `book`, `art`, `wiki`, `define`, `currency`, `person` |
 | Music | `play`, `queue`, `nowplaying`, `skip`, `skipto`, `pause`, `resume`, `stop`, `shuffle`, `remove`, `clear`, `loop`, `volume` |
 
