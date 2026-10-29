@@ -1,0 +1,53 @@
+name: Deploy to bot-hosting.net
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Syntax check
+        run: npm run check
+
+      - name: Deploy to bot-hosting.net
+        if: success()
+        env:
+          BOT_HOSTING_API_KEY: ${{ secrets.BOT_HOSTING_API_KEY }}
+          BOT_HOSTING_BOT_ID: ${{ secrets.BOT_HOSTING_BOT_ID }}
+        run: |
+          if [ -z "$BOT_HOSTING_API_KEY" ] || [ -z "$BOT_HOSTING_BOT_ID" ]; then
+            echo "⚠️  BOT_HOSTING_API_KEY or BOT_HOSTING_BOT_ID not set in GitHub Secrets"
+            echo "   Add them in: Settings > Secrets and variables > Actions"
+            exit 0
+          fi
+
+          echo "🚀 Deploying to bot-hosting.net..."
+          curl -X POST "https://api.bot-hosting.net/v1/bots/$BOT_HOSTING_BOT_ID/redeploy" \
+            -H "Authorization: Bearer $BOT_HOSTING_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"branch": "main"}'
+
+          echo "✅ Deploy triggered!"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Build or tests failed — check Actions log"
