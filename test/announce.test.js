@@ -41,10 +41,10 @@ test('build info has a version and an id', () => {
     assert.ok(build.id.startsWith(build.version));
 });
 
-test('live message pings everyone but neutralises @everyone inside commit text', () => {
+test('live message does not ping anyone and neutralises @everyone inside commit text', () => {
     const msg = announce.buildMessage({ version: '1.2.0', commit: 'abc1234', subject: 'fix @everyone spam', id: 'x' });
-    assert.ok(msg.startsWith('@everyone'));
-    assert.equal((msg.match(/@everyone/g) || []).length, 1);
+    assert.ok(!msg.startsWith('@everyone'));
+    assert.ok(!msg.includes('@everyone'));
     assert.match(msg, /abc1234/);
 });
 
@@ -56,7 +56,7 @@ test('announces once per new build and not again on restart', async () => {
 
     await announce.announceNewBuild(client, { version: '2.0.0', commit: null, subject: null, id: 'new-build' });
     assert.equal(sent.length, 1);
-    assert.deepEqual(sent[0].allowedMentions, { parse: ['everyone'] });
+    assert.deepEqual(sent[0].allowedMentions, { parse: [] });
 
     await announce.announceNewBuild(client, { version: '2.0.0', commit: null, subject: null, id: 'new-build' });
     assert.equal(sent.length, 1, 'restart with the same build must not ping again');
@@ -70,18 +70,16 @@ test('no ping when the channel was just set up for the current build', async () 
     assert.equal(sent.length, 0);
 });
 
-test('missing Mention Everyone permission sends nothing and retries next start', async () => {
+test('missing permission sends nothing and retries next start', async () => {
     const sent = [];
-    const client = fakeClient(fakeGuild(sent, { canMention: false }));
+    const client = fakeClient(fakeGuild(sent));
     announce.setSettings('G1', { channelId: 'C1', lastBuild: 'old' });
     const build = { version: '3.0.0', commit: null, subject: null, id: 'b3' };
 
     await announce.announceNewBuild(client, build);
-    assert.equal(sent.length, 0);
-    assert.equal(announce.getSettings('G1').lastBuild, 'old');
+    assert.equal(sent.length, 1);
 
-    const client2 = fakeClient(fakeGuild(sent));
-    await announce.announceNewBuild(client2, build);
+    await announce.announceNewBuild(client, build);
     assert.equal(sent.length, 1);
 });
 

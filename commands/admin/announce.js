@@ -9,7 +9,7 @@ const ROOT = path.join(__dirname, '..', '..');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('announce')
-        .setDescription('Set the channel where TrustMeBro posts a live message (with @everyone) after each update.')
+        .setDescription('Set the channel where TrustMeBro posts a live message after each update.')
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .setDMPermission(false)
         .addSubcommand(sub =>
@@ -64,7 +64,6 @@ module.exports = {
             const perms = channel.permissionsFor(guild.members.me);
             const missing = [];
             if (!perms?.has(PermissionFlagsBits.SendMessages)) missing.push('Send Messages');
-            if (!perms?.has(PermissionFlagsBits.MentionEveryone)) missing.push('Mention Everyone');
             if (missing.length) {
                 return interaction.reply({
                     content: `Bro, I need these permissions in ${channel}: ${missing.join(', ')}.`,
@@ -75,7 +74,7 @@ module.exports = {
             // The current build counts as announced, so setting this up does not ping anyone.
             announce.setSettings(guild.id, { channelId: channel.id, lastBuild: build.id });
             return interaction.reply({
-                content: `✅ Done. Next time I start with a new version, I will post the live message with @everyone in ${channel}. Use \`/announce test\` to check it now.`,
+                content: `✅ Done. Next time I start with a new version, I will post the live message in ${channel}. Use \`/announce test\` to check it now.`,
                 ephemeral: true,
             });
         }
