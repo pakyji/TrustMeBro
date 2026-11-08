@@ -327,12 +327,6 @@ data/               runtime data (git-ignored)
 
 ---
 
-## Contributing
-
-Pull requests are welcome. Run `npm test` and `npm run check` before opening one.
-
----
-
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
